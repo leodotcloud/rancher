@@ -15,6 +15,7 @@ import (
 	"github.com/rancher/rancher/pkg/controllers/user/logging"
 	//"github.com/rancher/rancher/pkg/controllers/user/networkpolicy"
 	"github.com/rancher/rancher/pkg/controllers/user/noderemove"
+	"github.com/rancher/rancher/pkg/controllers/user/vm"
 	"github.com/rancher/rancher/pkg/controllers/user/nodesyncer"
 	"github.com/rancher/rancher/pkg/controllers/user/nslabels"
 	"github.com/rancher/rancher/pkg/controllers/user/pipeline"
@@ -42,6 +43,7 @@ func Register(ctx context.Context, cluster *config.UserContext, kubeConfigGetter
 	podsecuritypolicy.RegisterTemplate(cluster)
 	secret.Register(cluster)
 	endpoints.Register(ctx, cluster)
+	vm.Register(cluster)
 
 	userOnlyContext := cluster.UserOnlyContext()
 	dnsrecord.Register(ctx, userOnlyContext)

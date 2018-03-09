@@ -69,6 +69,7 @@ func Setup(ctx context.Context, apiContext *config.ScaledContext, clusterManager
 		client.PreferenceType,
 		client.ProjectLoggingType,
 		client.ProjectNetworkPolicyType,
+		client.VirtualMachineType,
 		client.ProjectRoleTemplateBindingType,
 		client.ProjectType,
 		client.RoleTemplateType,

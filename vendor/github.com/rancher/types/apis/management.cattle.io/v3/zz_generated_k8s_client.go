@@ -40,6 +40,7 @@ type Interface interface {
 	DynamicSchemasGetter
 	PreferencesGetter
 	ProjectNetworkPoliciesGetter
+	VirtualMachinesGetter
 	ClusterLoggingsGetter
 	ProjectLoggingsGetter
 	ListenConfigsGetter
@@ -86,6 +87,7 @@ type Client struct {
 	dynamicSchemaControllers              map[string]DynamicSchemaController
 	preferenceControllers                 map[string]PreferenceController
 	projectNetworkPolicyControllers       map[string]ProjectNetworkPolicyController
+	virtualMachineControllers             map[string]VirtualMachineController
 	clusterLoggingControllers             map[string]ClusterLoggingController
 	projectLoggingControllers             map[string]ProjectLoggingController
 	listenConfigControllers               map[string]ListenConfigController
@@ -141,6 +143,7 @@ func NewForConfig(config rest.Config) (Interface, error) {
 		dynamicSchemaControllers:              map[string]DynamicSchemaController{},
 		preferenceControllers:                 map[string]PreferenceController{},
 		projectNetworkPolicyControllers:       map[string]ProjectNetworkPolicyController{},
+		virtualMachineControllers:             map[string]VirtualMachineController{},
 		clusterLoggingControllers:             map[string]ClusterLoggingController{},
 		projectLoggingControllers:             map[string]ProjectLoggingController{},
 		listenConfigControllers:               map[string]ListenConfigController{},
@@ -501,6 +504,19 @@ type ProjectNetworkPoliciesGetter interface {
 func (c *Client) ProjectNetworkPolicies(namespace string) ProjectNetworkPolicyInterface {
 	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &ProjectNetworkPolicyResource, ProjectNetworkPolicyGroupVersionKind, projectNetworkPolicyFactory{})
 	return &projectNetworkPolicyClient{
+		ns:           namespace,
+		client:       c,
+		objectClient: objectClient,
+	}
+}
+
+type VirtualMachinesGetter interface {
+	VirtualMachines(namespace string) VirtualMachineInterface
+}
+
+func (c *Client) VirtualMachines(namespace string) VirtualMachineInterface {
+	objectClient := clientbase.NewObjectClient(namespace, c.restClient, &VirtualMachineResource, VirtualMachineGroupVersionKind, virtualMachineFactory{})
+	return &virtualMachineClient{
 		ns:           namespace,
 		client:       c,
 		objectClient: objectClient,
