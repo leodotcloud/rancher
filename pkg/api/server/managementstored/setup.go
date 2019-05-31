@@ -215,6 +215,7 @@ func Clusters(schemas *types.Schemas, managementContext *config.ScaledContext, c
 		ClusterManager:     clusterManager,
 		NodeTemplateGetter: managementContext.Management,
 		BackupClient:       managementContext.Management.EtcdBackups(""),
+		ClusterScanClient:  managementContext.Management.ClusterScans(""),
 	}
 
 	schema := schemas.Schema(&managementschema.Version, client.ClusterType)
