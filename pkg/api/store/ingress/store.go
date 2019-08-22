@@ -35,6 +35,7 @@ type Store struct {
 }
 
 func (p *Store) Create(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}) (map[string]interface{}, error) {
+	logrus.Infof("MP: Create")
 	name, _ := data["name"].(string)
 	namespace, _ := data["namespaceId"].(string)
 	id := ref.FromStrings(namespace, name)
@@ -44,12 +45,14 @@ func (p *Store) Create(apiContext *types.APIContext, schema *types.Schema, data 
 }
 
 func (p *Store) Update(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}, id string) (map[string]interface{}, error) {
+	logrus.Infof("MP: Update")
 	formatData(id, data, false)
 	data, err := p.Store.Update(apiContext, schema, data, id)
 	return data, err
 }
 
 func formatData(id string, data map[string]interface{}, forFrontend bool) {
+	logrus.Infof("MP: id: %v data: %+v", id, data)
 	oldState := getState(data)
 	newState := map[string]string{}
 
@@ -58,9 +61,13 @@ func formatData(id string, data map[string]interface{}, forFrontend bool) {
 		updateRule(convert.ToMapInterface(target), id, "", "/", forFrontend, data, oldState, newState)
 	}
 
-	// transform rules
+	// The ingress object stored in API is backed by a native k8s ingress object.
+	// The API obj provides additional fields in the rules that do not map directly to the native object. Ex: workloadIds
+	// Hence need to transform the rules.
 	if paths, ok, flag := getPaths(data); ok {
+		logrus.Infof("MP: paths=%v", paths)
 		for hostpath, target := range paths {
+			logrus.Infof("MP: hostpath: %+v", hostpath)
 			updateRule(target, id, hostpath.host, hostpath.path, forFrontend, data, oldState, newState)
 		}
 		if flag {
@@ -69,6 +76,7 @@ func formatData(id string, data map[string]interface{}, forFrontend bool) {
 	}
 
 	updateCerts(data, forFrontend, oldState, newState)
+	logrus.Infof("MP: newState: %+v", newState)
 	setState(data, newState)
 	workload.SetPublicEndpointsFields(data)
 }
@@ -102,12 +110,15 @@ func updateDataRules(data map[string]interface{}) {
 }
 
 func updateRule(target map[string]interface{}, id, host, path string, forFrontend bool, data map[string]interface{}, oldState map[string]string, newState map[string]string) {
+	logrus.Infof("MP: updateRule: target: %+v, id: %v, host: %v, path: %v, data: %v, oldState: %v, newState: %v", target, id, host, path, data, oldState, newState)
 	targetData := convert.ToMapInterface(target)
 	port, _ := targetData["targetPort"]
 	serviceID, _ := targetData["serviceId"].(string)
 	namespace, name := ref.Parse(id)
 	stateKey := ingress.GetStateKey(name, namespace, host, path, convert.ToString(port))
+	logrus.Infof("MP: stateKey: %v", stateKey)
 	if forFrontend {
+		logrus.Infof("MP: forFrontend: true")
 		isService := true
 		if serviceValue, ok := oldState[stateKey]; ok && !convert.IsAPIObjectEmpty(serviceValue) {
 			targetData["workloadIds"] = strings.Split(serviceValue, "/")
@@ -120,8 +131,10 @@ func updateRule(target map[string]interface{}, id, host, path string, forFronten
 			delete(targetData, "serviceId")
 		}
 	} else {
+		logrus.Infof("MP: forFrontend: false")
 		workloadIDs := convert.ToStringSlice(targetData["workloadIds"])
 		sort.Strings(workloadIDs)
+		logrus.Infof("MP: workloadsIDs: %v", workloadIDs)
 		if serviceID != "" {
 			splitted := strings.Split(serviceID, ":")
 			if len(splitted) > 1 {

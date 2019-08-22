@@ -7,6 +7,6 @@ if [ ${ARCH} == amd64 ]; then
     ./validate
 fi
 ./build
-./test
+#./test
 ./package
-./chart/ci
+#./chart/ci

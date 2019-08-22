@@ -40,6 +40,9 @@ func (c *Controller) sync(key string, obj *v1beta1.Ingress) (runtime.Object, err
 	if obj == nil || obj.DeletionTimestamp != nil {
 		return nil, nil
 	}
+
+	logrus.Infof("MP: ingress sync: obj: %+v", obj)
+
 	state := GetIngressState(obj)
 	if state == nil {
 		return nil, nil
@@ -49,11 +52,13 @@ func (c *Controller) sync(key string, obj *v1beta1.Ingress) (runtime.Object, err
 	if err != nil {
 		return nil, err
 	}
+	logrus.Infof("MP: expectedServices: %+v", expectedServices)
 
 	existingServices, err := getIngressRelatedServices(c.serviceLister, obj, expectedServices)
 	if err != nil {
 		return nil, err
 	}
+	logrus.Infof("MP: existingServices: %+v", existingServices)
 
 	needNodePort := c.needNodePort()
 

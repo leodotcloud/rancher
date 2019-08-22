@@ -8,7 +8,6 @@ import (
 
 	"github.com/rancher/norman/types/convert"
 	util "github.com/rancher/rancher/pkg/controllers/user/workload"
-	"github.com/rancher/rancher/pkg/settings"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
@@ -21,11 +20,13 @@ const (
 )
 
 func GetStateKey(name, namespace, host string, path string, port string) string {
-	ipDomain := settings.IngressIPDomain.Get()
-	if ipDomain != "" && strings.HasSuffix(host, ipDomain) {
-		host = ipDomain
-	}
+	logrus.Infof("MP: GetStateKey: name: %v, namespace: %v, host: %v, path: %v, port: %v", name, namespace, host, path, port)
+	//ipDomain := settings.IngressIPDomain.Get()
+	//if ipDomain != "" && strings.HasSuffix(host, ipDomain) {
+	//	host = ipDomain
+	//}
 	key := fmt.Sprintf("%s/%s/%s/%s/%s", name, namespace, host, path, port)
+	logrus.Infof("MP key: %v", key)
 	return base64.URLEncoding.EncodeToString([]byte(key))
 }
 
