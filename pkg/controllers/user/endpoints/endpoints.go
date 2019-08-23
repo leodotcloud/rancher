@@ -333,6 +333,7 @@ func convertIngressToServicePublicEndpointsMap(obj *extensionsv1beta1.Ingress, a
 			}
 		}
 	}
+	logrus.Infof("MP: endpoints: epsMap=%+v", epsMap)
 	return epsMap
 }
 
@@ -342,5 +343,6 @@ func convertIngressToPublicEndpoints(obj *extensionsv1beta1.Ingress, isRKE bool)
 	for _, v := range epsMap {
 		eps = append(eps, v...)
 	}
+	logrus.Infof("MP: endpoints: eps=%+v", eps)
 	return eps
 }

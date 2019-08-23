@@ -71,24 +71,42 @@ func (i *IngressHostGen) sync(key string, obj *v1beta1.Ingress) (runtime.Object,
 		}
 	}
 
-	if !changed {
+	ingressState := ingress.GetIngressState(obj)
+	requiredKeysUpdate := false
+	for _, rule := range obj.Spec.Rules {
+		if strings.HasSuffix(rule.Host, ipDomain) {
+			for _, path := range rule.HTTP.Paths {
+				oldStateKey := ingress.GetStateKey(obj.Name, obj.Namespace, ipDomain, path.Path, convert.ToString(path.Backend.ServicePort.IntVal))
+				if _, ok := ingressState[oldStateKey]; ok {
+					requiredKeysUpdate = true
+					break
+				}
+			}
+		}
+	}
+	logrus.Infof("MP: ingresshostgen: changed: %v, requiredKeysUpdate: %v", changed, requiredKeysUpdate)
+
+	if !changed && !requiredKeysUpdate {
 		return nil, nil
 	}
 
-	obj = obj.DeepCopy()
-	ingressState := ingress.GetIngressState(obj)
-	for i, rule := range obj.Spec.Rules {
-		if strings.HasSuffix(rule.Host, ipDomain) {
+	logrus.Infof("MP: ingresshostgen: ingressState: %+v", ingressState)
 
+	obj = obj.DeepCopy()
+	for i, rule := range obj.Spec.Rules {
+		logrus.Infof("MP: ingresshostgen: rule: %+v", rule)
+		if strings.HasSuffix(rule.Host, ipDomain) {
 			for _, path := range rule.HTTP.Paths {
-				//oldStateKey := fmt.Sprintf("%s/%s/%s/%s/%s", obj.Name, obj.Namespace, obj.Spec.Rules[i].Host, path.Path, convert.ToString(path.Backend.ServicePort.IntVal))
-				//newStateKey := fmt.Sprintf("%s/%s/%s/%s/%s", obj.Name, obj.Namespace, xipHost, path.Path, convert.ToString(path.Backend.ServicePort.IntVal))
-				oldStateKey := ingress.GetStateKey(obj.Name, obj.Namespace, obj.Spec.Rules[i].Host, path.Path, convert.ToString(path.Backend.ServicePort.IntVal))
+				oldStateKey := ingress.GetStateKey(obj.Name, obj.Namespace, ipDomain, path.Path, convert.ToString(path.Backend.ServicePort.IntVal))
 				newStateKey := ingress.GetStateKey(obj.Name, obj.Namespace, xipHost, path.Path, convert.ToString(path.Backend.ServicePort.IntVal))
-				oldStateKeyValue := ingressState[oldStateKey]
-				delete(ingressState, oldStateKey)
-				logrus.Infof("replacing oldStateKey: %v with newStateKey: %v and value: %v", oldStateKey, newStateKey, oldStateKeyValue)
-				ingressState[newStateKey] = oldStateKeyValue
+
+				oldStateKeyValue, ok := ingressState[oldStateKey]
+				logrus.Infof("MP: ingresshostgen: oldStateKey: %v newStateKey: %v, ok: %v, oldStateKeyValue: %v", oldStateKey, newStateKey, ok, oldStateKeyValue)
+				if ok && oldStateKey != newStateKey {
+					delete(ingressState, oldStateKey)
+					logrus.Infof("MP: ingresshostgen: replacing oldStateKey: %v with newStateKey: %v and value: %v", oldStateKey, newStateKey, oldStateKeyValue)
+					ingressState[newStateKey] = oldStateKeyValue
+				}
 			}
 			obj.Spec.Rules[i].Host = xipHost
 		}

@@ -161,6 +161,7 @@ func getServiceID(stateKey string) string {
 	sum := md5.Sum(bytes)
 	hex := "ingress-" + hex.EncodeToString(sum[:])
 
+	logrus.Infof("MP: store: getServiceID: stateKey=%+v hex=%+v", stateKey, hex)
 	return hex
 }
 
