@@ -35,24 +35,26 @@ type Store struct {
 }
 
 func (p *Store) Create(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}) (map[string]interface{}, error) {
-	logrus.Infof("MP: Create")
+	logrus.Infof("MP: store: Create before data: %+v", data)
 	name, _ := data["name"].(string)
 	namespace, _ := data["namespaceId"].(string)
 	id := ref.FromStrings(namespace, name)
 	formatData(id, data, false)
 	data, err := p.Store.Create(apiContext, schema, data)
+	logrus.Infof("MP: store: Create after data: %+v", data)
 	return data, err
 }
 
 func (p *Store) Update(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}, id string) (map[string]interface{}, error) {
-	logrus.Infof("MP: Update")
+	logrus.Infof("MP: store: Update: before data: %+v", data)
 	formatData(id, data, false)
 	data, err := p.Store.Update(apiContext, schema, data, id)
+	logrus.Infof("MP: store: Update: after data: %+v", data)
 	return data, err
 }
 
 func formatData(id string, data map[string]interface{}, forFrontend bool) {
-	logrus.Infof("MP: id: %v data: %+v", id, data)
+	logrus.Infof("MP: formatData: before: id: %v data: %+v", id, data)
 	oldState := getState(data)
 	newState := map[string]string{}
 
@@ -79,6 +81,7 @@ func formatData(id string, data map[string]interface{}, forFrontend bool) {
 	logrus.Infof("MP: newState: %+v", newState)
 	setState(data, newState)
 	workload.SetPublicEndpointsFields(data)
+	logrus.Infof("MP: formatData: after: id: %v data: %+v", id, data)
 }
 
 func updateDataRules(data map[string]interface{}) {
@@ -255,9 +258,11 @@ func New(store types.Store) types.Store {
 	return &transform.Store{
 		Store: store,
 		Transformer: func(apiContext *types.APIContext, schema *types.Schema, data map[string]interface{}, opt *types.QueryOptions) (map[string]interface{}, error) {
+			logrus.Infof("MP: transformer: before data: %+v", data)
 			id, _ := data["id"].(string)
 			formatData(id, data, true)
 			setIngressState(data)
+			logrus.Infof("MP: transformer: after data: %+v", data)
 			return data, nil
 		},
 	}

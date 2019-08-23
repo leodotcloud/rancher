@@ -2,6 +2,7 @@ package ingress
 
 import (
 	"context"
+	"github.com/rancher/rancher/pkg/settings"
 
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -99,8 +100,13 @@ func (c *Controller) sync(key string, obj *v1beta1.Ingress) (runtime.Object, err
 
 func generateExpectedServices(state map[string]string, obj *v1beta1.Ingress) (map[string]ingressService, error) {
 	var err error
+	ipDomain := settings.IngressIPDomain.Get()
 	rtn := map[string]ingressService{}
 	for _, r := range obj.Spec.Rules {
+		if r.Host == ipDomain {
+			logrus.Infof("not generating expected services as host=%v (ipDomain)", r.Host)
+			continue
+		}
 		host := r.Host
 		for _, b := range r.HTTP.Paths {
 			key := GetStateKey(obj.Name, obj.Namespace, host, b.Path, convert.ToString(b.Backend.ServicePort.IntVal))

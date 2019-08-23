@@ -43,6 +43,16 @@ func GetIngressState(obj *v1beta1.Ingress) map[string]string {
 	return nil
 }
 
+func SetIngressState(obj *v1beta1.Ingress, stateMap map[string]string) error {
+	content, err := json.Marshal(stateMap)
+	if err != nil {
+		return err
+	}
+	obj.Annotations[ingressStateAnnotation] = string(content)
+
+	return nil
+}
+
 type ingressService struct {
 	serviceName string
 	servicePort int32
