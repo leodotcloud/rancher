@@ -146,7 +146,7 @@ func (cd *clusterDeploy) deployAgent(cluster *v3.Cluster) error {
 			time.Sleep(2 * time.Second)
 		}
 		if err != nil {
-			return cluster, types.NewErrors(err, errors.New(fmt.Sprintf("error applying yaml for agent deploy: %v", string(output))))
+			return cluster, types.NewErrors(err, fmt.Errorf("error applying yaml for agent deploy: %v", string(output)))
 		}
 		v3.ClusterConditionAgentDeployed.Message(cluster, string(output))
 		if !cluster.Spec.LocalClusterAuthEndpoint.Enabled && cluster.Status.AppliedSpec.LocalClusterAuthEndpoint.Enabled && cluster.Status.AuthImage != "" {
