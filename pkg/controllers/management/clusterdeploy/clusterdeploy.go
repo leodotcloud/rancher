@@ -134,6 +134,7 @@ func (cd *clusterDeploy) deployAgent(cluster *v3.Cluster) error {
 		if err != nil {
 			return cluster, err
 		}
+		logrus.Infof("yaml=%+v", string(yaml))
 		var output []byte
 		for i := 0; i < 3; i++ {
 			// This will fail almost always the first time because when we create the namespace in the file
@@ -145,7 +146,7 @@ func (cd *clusterDeploy) deployAgent(cluster *v3.Cluster) error {
 			time.Sleep(2 * time.Second)
 		}
 		if err != nil {
-			return cluster, types.NewErrors(err, errors.New(string(output)))
+			return cluster, types.NewErrors(err, errors.New(fmt.Sprintf("error applying yaml for agent deploy: %v", string(output))))
 		}
 		v3.ClusterConditionAgentDeployed.Message(cluster, string(output))
 		if !cluster.Spec.LocalClusterAuthEndpoint.Enabled && cluster.Status.AppliedSpec.LocalClusterAuthEndpoint.Enabled && cluster.Status.AuthImage != "" {
