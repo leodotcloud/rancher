@@ -4,9 +4,9 @@ set -e
 cd $(dirname $0)
 
 if [ ${ARCH} == amd64 ]; then
-    ./validate
+    #./validate
 fi
 ./build
-./test
+#./test
 ./package
 ./chart/ci
