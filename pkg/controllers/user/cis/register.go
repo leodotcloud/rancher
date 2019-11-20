@@ -3,6 +3,8 @@ package cis
 import (
 	"context"
 
+	v3 "github.com/rancher/types/apis/management.cattle.io/v3"
+
 	"github.com/rancher/rancher/pkg/systemaccount"
 	"github.com/rancher/types/config"
 	"github.com/sirupsen/logrus"
@@ -26,8 +28,8 @@ func Register(ctx context.Context, userContext *config.UserContext) {
 
 	mgmtClusterClient := mgmtContext.Management.Clusters(metav1.NamespaceAll)
 	mgmtClusterScanClient := mgmtContext.Management.ClusterScans(clusterName)
-	pods := userContext.Core.Pods(DefaultNamespaceForCis)
-	configMapsClient := userContext.Core.ConfigMaps(DefaultNamespaceForCis)
+	pods := userContext.Core.Pods(v3.DefaultNamespaceForCis)
+	configMapsClient := userContext.Core.ConfigMaps(v3.DefaultNamespaceForCis)
 
 	podHandler := &podHandler{
 		mgmtClusterScanClient,
