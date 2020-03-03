@@ -51,6 +51,11 @@ node {
 
       dir ("tests/validation") {
         stage('Configure and Build') {
+          environment {
+              DEBUG = "${params.DEBUG}"
+              AWS_VPC_ID = "${params.AWS_VPC_ID}"
+              AWS_SUBNET = "${params.AWS_SUBNET}"
+          }
           if (env.AWS_SSH_PEM_KEY && env.AWS_SSH_KEY_NAME) {
             dir(".ssh") {
               def decoded = new String(AWS_SSH_PEM_KEY.decodeBase64())
