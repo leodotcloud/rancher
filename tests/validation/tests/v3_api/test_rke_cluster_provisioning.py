@@ -222,11 +222,11 @@ def test_cis_complaint():
     # rke_config_cis
     aws_nodes = \
         AmazonWebServices().create_multiple_nodes(
-            8, random_test_name(HOST_NAME))
+            3, random_test_name(HOST_NAME))
     node_roles = [
-        ["controlplane"], ["controlplane"],
-        ["etcd"], ["etcd"], ["etcd"],
-        ["worker"], ["worker"], ["worker"]
+        ["controlplane"],
+        ["etcd"],
+        ["worker"]
     ]
     client = get_admin_client()
     cluster = client.create_cluster(
